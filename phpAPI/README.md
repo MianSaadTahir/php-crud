@@ -694,19 +694,4 @@ curl -X DELETE http://localhost/phpAPI/api/products/1
    - Ensure Bootstrap JS is loaded
    - Check for JavaScript errors in console
 
-## 📄 License
-
-This project is created for educational purposes as part of a REST API development assignment.
-
-## 👨‍💻 Author
-
-Created for Assignment #5 - REST API Development and Consumption
-
-## 📅 Date
-
-November 2024
-
----
-
-**Note:** This is a learning project demonstrating REST API development and consumption. For production use, additional security measures, authentication, and error handling should be implemented.
 
