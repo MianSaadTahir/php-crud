@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management System - REST API</title>
+    
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Bootstrap CSS for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <header class="bg-primary text-white p-4 mb-4">
+            <div class="container">
+                <h1 class="mb-0">
+                    <i class="bi bi-box-seam"></i> Product Management System
+                </h1>
+                <p class="mb-0 mt-2">REST API Development & Consumption</p>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Controls Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <!-- Search Bar -->
+                                <div class="col-md-4">
+                                    <label for="searchInput" class="form-label">Search Products</label>
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Search by name or description...">
+                                </div>
+                                
+                                <!-- Category Filter -->
+                                <div class="col-md-3">
+                                    <label for="categoryFilter" class="form-label">Filter by Category</label>
+                                    <select class="form-select" id="categoryFilter">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Sort Options -->
+                                <div class="col-md-3">
+                                    <label for="sortSelect" class="form-label">Sort By</label>
+                                    <select class="form-select" id="sortSelect">
+                                        <option value="name-asc">Name (A-Z)</option>
+                                        <option value="name-desc">Name (Z-A)</option>
+                                        <option value="price-asc">Price (Low to High)</option>
+                                        <option value="price-desc">Price (High to Low)</option>
+                                        <option value="stock-asc">Stock (Low to High)</option>
+                                        <option value="stock-desc">Stock (High to Low)</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Add Product Button -->
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-success w-100" id="addProductBtn">
+                                        <i class="bi bi-plus-circle"></i> Add Product
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="text-center mb-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading products...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="alert alert-danger" style="display: none;" role="alert"></div>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="alert alert-success" style="display: none;" role="alert"></div>
+
+            <!-- Products Table -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul"></i> Products List
+                                <span class="badge bg-primary ms-2" id="productCount">0</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="productsTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th>Price</th>
+                                            <th>Category</th>
+                                            <th>Stock</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productsTableBody">
+                                        <!-- Products will be loaded here dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="noProducts" class="text-center py-5" style="display: none;">
+                                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                                <p class="text-muted mt-3">No products found</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal (Add/Edit) -->
+    <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productModalLabel">
+                        <i class="bi bi-plus-circle"></i> Add New Product
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <input type="hidden" id="productId" name="id">
+                        
+                        <div class="mb-3">
+                            <label for="productName" class="form-label">Product Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="productName" name="name" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="productDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="productDescription" name="description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="productPrice" class="form-label">Price <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="productPrice" name="price" step="0.01" min="0" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="productCategory" class="form-label">Category</label>
+                                <select class="form-select" id="productCategory" name="category">
+                                    <option value="">Select Category</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="productStock" class="form-label">Stock Quantity</label>
+                            <input type="number" class="form-control" id="productStock" name="stock_quantity" min="0" value="0">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveProductBtn">
+                        <i class="bi bi-save"></i> Save Product
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
+
